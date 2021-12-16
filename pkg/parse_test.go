@@ -15,6 +15,13 @@ func TestCanParseCronString(t *testing.T) {
 	assert.Equal(t, "/usr/bin/find", result.Command)
 }
 
+func TestFailOnNoCommand(t *testing.T) {
+	input := "*/15 0 1,15 * 1-5"
+	result, err := parse.ParseCronString(input)
+	assert.Error(t, err, "No command specified")
+	assert.Nil(t, result)
+}
+
 func TestCanSplitRange(t *testing.T) {
 	result, err := parse.ParseCronString("1-15")
 	assert.NoError(t, err)

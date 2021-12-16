@@ -159,6 +159,10 @@ func ParseCronString(input string) (*CronExpressionNode, error) {
 	parts := strings.Split(input, " ")
 
 	command := parts[EXPRESSION_INDEX_COUNT-1:]
+	if len(command) == 0 {
+		return nil, errors.New("No command specified")
+	}
+
 	node := NewExpressionNode(command[0])
 
 	for idx, value := range parts[0 : EXPRESSION_INDEX_COUNT-1] {
