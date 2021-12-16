@@ -55,18 +55,22 @@ day of week 1 2 3 4 5
 command /usr/bin/find
 */
 type CronExpressionNode struct {
-	indices []Unit
+	indices []*Unit
 }
 
-func (c CronExpressionNode) GetUnit(idx ExpressionIndex) Unit {
-	return c.indices[idx]
+func (c CronExpressionNode) GetUnit(idx ExpressionIndex) (*Unit, bool) {
+	if idx < 0 || idx > EXPRESSION_INDEX_COUNT {
+		return nil, false
+	}
+	val := c.indices[idx]
+	return val, val != nil
 }
-func (c *CronExpressionNode) SetIndex(idx ExpressionIndex, u Unit) {
+func (c *CronExpressionNode) SetIndex(idx ExpressionIndex, u *Unit) {
 	c.indices[idx] = u
 }
 
 func NewExpressionNode() *CronExpressionNode {
-	return &CronExpressionNode{make([]Unit, EXPRESSION_INDEX_COUNT)}
+	return &CronExpressionNode{make([]*Unit, EXPRESSION_INDEX_COUNT)}
 }
 
 type UnitKind int
@@ -158,7 +162,7 @@ func ParseCronString(input string) (*CronExpressionNode, error) {
 		if unit == nil {
 			return nil, fmt.Errorf("Failed to parse unit %s", value)
 		}
-		node.SetIndex(exprIdx, *unit)
+		node.SetIndex(exprIdx, unit)
 	}
 
 	return node, nil
