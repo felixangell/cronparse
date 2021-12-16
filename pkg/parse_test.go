@@ -14,6 +14,15 @@ func TestCanParseCronString(t *testing.T) {
 	assert.NotNil(t, result)
 }
 
+func TestCanSplitRange(t *testing.T) {
+	result, err := parse.ParseCronString("1-15")
+	assert.NoError(t, err)
+
+	min := result.GetUnit(parse.Minute)
+	assert.Equal(t, parse.Range, min.Kind)
+	assert.Equal(t, []string{"1", "15"}, min.Operands)
+}
+
 func TestCanBuildExpressionNode(t *testing.T) {
 	expr := parse.NewExpressionNode()
 	expr.SetIndex(parse.Minute, parse.Unit{

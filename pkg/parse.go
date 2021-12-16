@@ -1,5 +1,11 @@
 package parse
 
+import (
+	"errors"
+	"fmt"
+	"strings"
+)
+
 // "*/15 0 1,15 * 1-5 /usr/bin/find"
 
 // without looking at the spec for cron inputs,
@@ -57,8 +63,8 @@ func (c *CronExpressionNode) SetIndex(idx ExpressionIndex, u Unit) {
 	c.indices[idx] = u
 }
 
-func NewExpressionNode() CronExpressionNode {
-	return CronExpressionNode{make([]Unit, EXPRESSION_INDEX_COUNT)}
+func NewExpressionNode() *CronExpressionNode {
+	return &CronExpressionNode{make([]Unit, EXPRESSION_INDEX_COUNT)}
 }
 
 type UnitKind int
@@ -79,6 +85,53 @@ type Unit struct {
 	Kind     UnitKind
 }
 
+func parseRange(value string) *Unit {
+	parts := strings.Split(value, "-")
+	return &Unit{
+		Operands: parts,
+		Kind:     Range,
+	}
+}
+
+func parseUnit(value string) *Unit {
+	if strings.Compare(value, "*") == 0 {
+		return &Unit{
+			Operands: []string{"*"},
+			Kind:     Wildcard,
+		}
+	}
+
+	if strings.ContainsAny(value, "-") {
+		return parseRange(value)
+	} else if strings.ContainsAny(value, "*") {
+
+	}
+
+	return nil
+}
+
+func convIndex(idx int) (ExpressionIndex, error) {
+	if idx < 0 || idx >= int(EXPRESSION_INDEX_COUNT) {
+		return -1, errors.New("Out of bounds")
+	}
+	return ExpressionIndex(idx), nil
+}
+
 func ParseCronString(input string) (*CronExpressionNode, error) {
-	return nil, nil
+	parts := strings.Split(input, " ")
+
+	node := NewExpressionNode()
+	for idx, value := range parts {
+		exprIdx, err := convIndex(idx)
+		if err != nil {
+			return nil, errors.New("Failed to convert index")
+		}
+		unit := parseUnit(value)
+		if unit == nil {
+			return nil, fmt.Errorf("Failed to parse unit %s", value)
+		}
+		node.SetIndex(exprIdx, *unit)
+	}
+
+	return node, nil
 }
