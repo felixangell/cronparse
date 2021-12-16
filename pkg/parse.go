@@ -31,6 +31,7 @@ const (
 	Month
 	DayOfWeek
 	Year
+	EXPRESSION_INDEX_COUNT
 )
 
 // optionalIndices a set of all the optional indices
@@ -46,14 +47,26 @@ day of week 1 2 3 4 5
 command /usr/bin/find
 */
 type CronExpressionNode struct {
+	indices []Unit
+}
+
+func (c CronExpressionNode) GetUnit(idx ExpressionIndex) Unit {
+	return c.indices[idx]
+}
+func (c *CronExpressionNode) SetIndex(idx ExpressionIndex, u Unit) {
+	c.indices[idx] = u
+}
+
+func NewExpressionNode() CronExpressionNode {
+	return CronExpressionNode{make([]Unit, EXPRESSION_INDEX_COUNT)}
 }
 
 type UnitKind int
 
 const (
-	List     = iota // a,b,c
-	Range           // a - b
-	Wildcard        // *
+	List     UnitKind = iota // a,b,c
+	Range                    // a - b
+	Wildcard                 // *
 )
 
 type Unit struct {

@@ -13,3 +13,15 @@ func TestCanParseCronString(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 }
+
+func TestCanBuildExpressionNode(t *testing.T) {
+	expr := parse.NewExpressionNode()
+	expr.SetIndex(parse.Minute, parse.Unit{
+		Operands: []string{"a", "b"},
+		Kind:     parse.Range,
+	})
+
+	val := expr.GetUnit(parse.Minute)
+	assert.Equal(t, parse.Range, val.Kind)
+	assert.Equal(t, []string{"a", "b"}, val.Operands)
+}
