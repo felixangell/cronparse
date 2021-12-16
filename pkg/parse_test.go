@@ -23,6 +23,30 @@ func TestCanSplitRange(t *testing.T) {
 	assert.Equal(t, []string{"1", "15"}, min.Operands)
 }
 
+func TestCanParseList(t *testing.T) {
+	result, err := parse.ParseCronString("1,5,13")
+	assert.NoError(t, err)
+
+	min := result.GetUnit(parse.Minute)
+	assert.Equal(t, parse.List, min.Kind)
+	assert.Equal(t, []string{"1", "5", "13"}, min.Operands)
+}
+
+func TestBadInputFails(t *testing.T) {
+	result, err := parse.ParseCronString("this should fail")
+	assert.Nil(t, result)
+	assert.Error(t, err, "Failed to parse this should fail")
+}
+
+func TestCanParseInterval(t *testing.T) {
+	result, err := parse.ParseCronString("15/*")
+	assert.NoError(t, err)
+
+	min := result.GetUnit(parse.Minute)
+	assert.Equal(t, parse.Interval, min.Kind)
+	assert.Equal(t, []string{"15"}, min.Operands)
+}
+
 func TestCanBuildExpressionNode(t *testing.T) {
 	expr := parse.NewExpressionNode()
 	expr.SetIndex(parse.Minute, parse.Unit{
