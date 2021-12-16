@@ -56,6 +56,7 @@ command /usr/bin/find
 */
 type CronExpressionNode struct {
 	indices []*Unit
+	Command string
 }
 
 func (c CronExpressionNode) GetUnit(idx ExpressionIndex) (*Unit, bool) {
@@ -69,8 +70,8 @@ func (c *CronExpressionNode) SetIndex(idx ExpressionIndex, u *Unit) {
 	c.indices[idx] = u
 }
 
-func NewExpressionNode() *CronExpressionNode {
-	return &CronExpressionNode{make([]*Unit, EXPRESSION_INDEX_COUNT)}
+func NewExpressionNode(command string) *CronExpressionNode {
+	return &CronExpressionNode{make([]*Unit, EXPRESSION_INDEX_COUNT), command}
 }
 
 type UnitKind int
@@ -80,6 +81,7 @@ const (
 	Range                    // a - b
 	Interval                 // */N
 	Wildcard                 // *
+	Integer                  // N
 )
 
 type Unit struct {
@@ -112,13 +114,13 @@ func parseInterval(value string) *Unit {
 	parts := strings.Split(value, "/")
 
 	// purely to validate the integer/interval
-	if _, err := strconv.ParseInt(parts[0], 10, 64); err != nil {
+	if _, err := strconv.ParseInt(parts[1], 10, 64); err != nil {
 		log.Println(err)
 		return nil
 	}
 
 	return &Unit{
-		Operands: []string{parts[0]},
+		Operands: []string{parts[1]},
 		Kind:     Interval,
 	}
 }
@@ -139,6 +141,10 @@ func parseUnit(value string) *Unit {
 		return parseInterval(value)
 	}
 
+	if _, err := strconv.ParseInt(value, 10, 64); err == nil {
+		return &Unit{Operands: []string{value}, Kind: Integer}
+	}
+
 	return nil
 }
 
@@ -152,8 +158,10 @@ func convIndex(idx int) (ExpressionIndex, error) {
 func ParseCronString(input string) (*CronExpressionNode, error) {
 	parts := strings.Split(input, " ")
 
-	node := NewExpressionNode()
-	for idx, value := range parts {
+	command := parts[EXPRESSION_INDEX_COUNT-1:]
+	node := NewExpressionNode(command[0])
+
+	for idx, value := range parts[0 : EXPRESSION_INDEX_COUNT-1] {
 		exprIdx, err := convIndex(idx)
 		if err != nil {
 			return nil, errors.New("Failed to convert index")

@@ -12,6 +12,7 @@ func TestCanParseCronString(t *testing.T) {
 	result, err := parse.ParseCronString(input)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
+	assert.Equal(t, "/usr/bin/find", result.Command)
 }
 
 func TestCanSplitRange(t *testing.T) {
@@ -51,7 +52,7 @@ func TestBadInputFails(t *testing.T) {
 }
 
 func TestCanParseInterval(t *testing.T) {
-	result, err := parse.ParseCronString("15/*")
+	result, err := parse.ParseCronString("*/15")
 	assert.NoError(t, err)
 
 	min, _ := result.GetUnit(parse.Minute)
@@ -60,7 +61,7 @@ func TestCanParseInterval(t *testing.T) {
 }
 
 func TestCanBuildExpressionNode(t *testing.T) {
-	expr := parse.NewExpressionNode()
+	expr := parse.NewExpressionNode("/usr/local/bin/whatever")
 	expr.SetIndex(parse.Minute, &parse.Unit{
 		Operands: []string{"a", "b"},
 		Kind:     parse.Range,
