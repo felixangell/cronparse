@@ -20,26 +20,27 @@ func PrettyPrintCron(result parse.ParseResult, out func(a string)) {
 	prettyPrinter := NodePrettyPrinter{}
 
 	for idx := 0; idx < int(parse.ExpressionIndexCount); idx++ {
-		unit, ok := result.ExpressionNode.GetUnit(parse.ExpressionIndex(idx))
+		exprType := parse.ExpressionIndex(idx)
+		unit, ok := result.ExpressionNode.GetUnit(exprType)
 		if !ok {
 			log.Fatal("Bad unit at index", idx)
 		}
-		out(fmt.Sprintf("%v %v", dateStrings[idx], prettyPrinter.Print(*unit)))
+		out(fmt.Sprintf("%v %v", dateStrings[idx], prettyPrinter.Print(*unit, exprType)))
 	}
 	out(fmt.Sprintf("command %v", result.Command))
 
 }
 
-func (p NodePrettyPrinter) Print(unit parse.Unit) string {
+func (p NodePrettyPrinter) Print(unit parse.Unit, typ parse.ExpressionIndex) string {
 	switch unit.Kind {
 	case parse.List:
 		return p.printList(unit.Operands)
 	case parse.Range:
 		return p.printRange(unit.Operands)
 	case parse.Interval:
-		return p.printInterval(unit.Operands)
+		return p.printInterval(unit.Operands, typ)
 	case parse.Wildcard:
-		return p.printWildcard(unit.Operands)
+		return p.printWildcard(unit.Operands, typ)
 	case parse.Integer:
 		return p.printInteger(unit.Operands)
 	}
@@ -88,12 +89,25 @@ func (p NodePrettyPrinter) printRange(vals []string) string {
 	return strings.Trim(strings.Join(results, " "), " ")
 }
 
-func (p NodePrettyPrinter) printInterval(vals []string) string {
-	return "todo interval " + strings.Join(vals, " ")
+func (p NodePrettyPrinter) printInterval(vals []string, typ parse.ExpressionIndex) string {
+	// todo base on length
+	interval, _ := strconv.ParseInt(vals[0], 10, 64)
+	start, end := typ.RangeForType()
+
+	result := []string{}
+	for i := int64(start); i < int64(end); i += interval {
+		result = append(result, fmt.Sprintf("%v", i))
+	}
+	return strings.Join(result, " ")
 }
 
-func (p NodePrettyPrinter) printWildcard(vals []string) string {
-	return "todo wildcard " + strings.Join(vals, " ")
+func (p NodePrettyPrinter) printWildcard(vals []string, typ parse.ExpressionIndex) string {
+	start, end := typ.RangeForType()
+	result := []string{}
+	for i := int64(start); i <= int64(end); i++ {
+		result = append(result, fmt.Sprintf("%v", i))
+	}
+	return strings.Join(result, " ")
 }
 
 func (p NodePrettyPrinter) printInteger(vals []string) string {

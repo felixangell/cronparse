@@ -41,6 +41,26 @@ const (
 	ExpressionIndexCount
 )
 
+func (e ExpressionIndex) RangeForType() (int, int) {
+	switch e {
+	case Minute:
+		return 0, 59
+	case Hour:
+		return 0, 23
+	case DayOfMonth:
+		return 1, 31
+	case Month:
+		return 1, 12
+	case DayOfWeek:
+		// non standardised range (7 is sunday?)
+		return 0, 7
+	case ExpressionIndexCount:
+		fallthrough
+	default:
+		panic("Invalid state")
+	}
+}
+
 /*
 minute 0 15 30 45
 hour 0
