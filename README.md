@@ -77,10 +77,12 @@ day of week 1 2 3 4 5
 command /usr/bin/find
 ```
 
-Time tracking;
+#### Time tracking;
 I did start this in December and continued it in January over two different sessions.
 From the git timestamps i've collected to try keep within the allocated window of time.
 Overall this took me around 1hr 30min to 2 hours.
 
 Dec 16th start: 14:50:53 - 15:24:42 (34 minutes)
 Jan 10th start: 21:47:43 - 22:42:00 (1 hour)
+
+There is a Git log history which shows my workflow and time spans of development.
