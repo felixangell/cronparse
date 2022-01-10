@@ -25,9 +25,10 @@ func PrettyPrintCron(result parse.ParseResult, out func(a string)) {
 		if !ok {
 			log.Fatal("Bad unit at index", idx)
 		}
-		out(fmt.Sprintf("%v %v", dateStrings[idx], prettyPrinter.Print(*unit, exprType)))
+
+		out(fmt.Sprintf("%-14v%v", dateStrings[idx], prettyPrinter.Print(*unit, exprType)))
 	}
-	out(fmt.Sprintf("command %v", result.Command))
+	out(fmt.Sprintf("%-14v%v", "command", result.Command))
 
 }
 
