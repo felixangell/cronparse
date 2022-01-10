@@ -99,10 +99,10 @@ type UnitKind string
 
 const (
 	List     UnitKind = "list"     // a,b,c
-	Range             = "range"    // a - b
-	Interval          = "interval" // */N
-	Wildcard          = "wildcard" // *
-	Integer           = "integer"  // N
+	Range    UnitKind = "range"    // a - b
+	Interval UnitKind = "interval" // */N
+	Wildcard UnitKind = "wildcard" // *
+	Integer  UnitKind = "integer"  // N
 )
 
 type Unit struct {
