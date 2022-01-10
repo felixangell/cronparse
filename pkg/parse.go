@@ -38,13 +38,8 @@ const (
 	DayOfMonth
 	Month
 	DayOfWeek
-	Year
-	EXPRESSION_INDEX_COUNT
+	ExpressionIndexCount
 )
-
-// optionalIndices a set of all the optional indices
-// in the expression... we just have one.
-var optionalIndices = []ExpressionIndex{Year}
 
 /*
 minute 0 15 30 45
@@ -56,11 +51,17 @@ command /usr/bin/find
 */
 type CronExpressionNode struct {
 	indices []*Unit
-	Command string
 }
 
+type ParseResult struct {
+	ExpressionNode *CronExpressionNode
+	Command        string
+}
+
+// GetUnit will return the unit at the given index and
+// whether or not it exist or not.
 func (c CronExpressionNode) GetUnit(idx ExpressionIndex) (*Unit, bool) {
-	if idx < 0 || idx > EXPRESSION_INDEX_COUNT {
+	if idx < 0 || idx > ExpressionIndexCount {
 		return nil, false
 	}
 	val := c.indices[idx]
@@ -70,18 +71,18 @@ func (c *CronExpressionNode) SetIndex(idx ExpressionIndex, u *Unit) {
 	c.indices[idx] = u
 }
 
-func NewExpressionNode(command string) *CronExpressionNode {
-	return &CronExpressionNode{make([]*Unit, EXPRESSION_INDEX_COUNT), command}
+func NewExpressionNode() *CronExpressionNode {
+	return &CronExpressionNode{make([]*Unit, ExpressionIndexCount)}
 }
 
-type UnitKind int
+type UnitKind string
 
 const (
-	List     UnitKind = iota // a,b,c
-	Range                    // a - b
-	Interval                 // */N
-	Wildcard                 // *
-	Integer                  // N
+	List     UnitKind = "list"     // a,b,c
+	Range             = "range"    // a - b
+	Interval          = "interval" // */N
+	Wildcard          = "wildcard" // *
+	Integer           = "integer"  // N
 )
 
 type Unit struct {
@@ -92,6 +93,10 @@ type Unit struct {
 	// a - b 		=> []{a, b}
 	Operands []string
 	Kind     UnitKind
+}
+
+func (u Unit) String() string {
+	return fmt.Sprintf("%v: %v", u.Kind, u.Operands)
 }
 
 func parseRange(value string) *Unit {
@@ -149,23 +154,26 @@ func parseUnit(value string) *Unit {
 }
 
 func convIndex(idx int) (ExpressionIndex, error) {
-	if idx < 0 || idx >= int(EXPRESSION_INDEX_COUNT) {
+	if idx < 0 || idx >= int(ExpressionIndexCount) {
 		return -1, errors.New("Out of bounds")
 	}
 	return ExpressionIndex(idx), nil
 }
 
-func ParseCronString(input string) (*CronExpressionNode, error) {
+func ParseCronString(input string) (*ParseResult, error) {
 	parts := strings.Split(input, " ")
 
-	command := parts[EXPRESSION_INDEX_COUNT-1:]
+	// take the last value in the array
+	// as the command. i dont think this is to spec though.
+	maxLen := minOf(int(ExpressionIndexCount), len(parts))
+	command := parts[maxLen:]
 	if len(command) == 0 {
 		return nil, errors.New("No command specified")
 	}
 
-	node := NewExpressionNode(command[0])
+	node := NewExpressionNode()
 
-	for idx, value := range parts[0 : EXPRESSION_INDEX_COUNT-1] {
+	for idx, value := range parts[0:ExpressionIndexCount] {
 		exprIdx, err := convIndex(idx)
 		if err != nil {
 			return nil, errors.New("Failed to convert index")
@@ -177,5 +185,18 @@ func ParseCronString(input string) (*CronExpressionNode, error) {
 		node.SetIndex(exprIdx, unit)
 	}
 
-	return node, nil
+	return &ParseResult{
+		ExpressionNode: node,
+		Command:        command[0],
+	}, nil
+}
+
+func minOf(values ...int) int {
+	min := values[0]
+	for _, i := range values {
+		if min > i {
+			min = i
+		}
+	}
+	return min
 }
