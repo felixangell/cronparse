@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/felixangell/cronparse/internal"
 	"log"
 	"os"
 
@@ -19,26 +20,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	prettyPrintCron(*result)
-}
 
-func prettyPrintCron(result parse.ParseResult) {
-	//minute 0 15 30 45
-	//hour 0
-	//day of month 1 15
-	//month 1 2 3 4 5 6 7 8 9 10 11 12
-	//day of week 1 2 3 4 5
-	//command /usr/bin/find
-
-	dateStrings := []string{
-		"minute", "hour", "day of month", "month", "day of week", "command",
+	stdOutWriter := func(out string) {
+		fmt.Println(out)
 	}
-
-	for idx := 0; idx < int(parse.ExpressionIndexCount); idx++ {
-		unit, ok := result.ExpressionNode.GetUnit(parse.ExpressionIndex(idx))
-		if !ok {
-			log.Fatal("Bad unit at index", idx)
-		}
-		fmt.Println(dateStrings[idx], unit)
-	}
+	internal.PrettyPrintCron(*result, stdOutWriter)
 }
